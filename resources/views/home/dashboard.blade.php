@@ -67,14 +67,14 @@
                           }
                           @endphp
 
-                          <div class="text-end text-muted">
+                          <div class="text-end text-muted mr-3">
                               <div class="small mb-0 ml-3 py-2 px-3 rounded {{ $borderClass }}" style="border-width: 4px;">
                                   {!! $icon !!} <strong>Due Date:</strong> {{ $dueDate->format('jS M Y') }}
                               </div>
                           </div>
 
                           <!-- actions -->
-                          <div class="d-flex align-items-center">
+                          <div class="d-flex align-items-center gap-3">
                               <!-- Status Toggle Button -->
                             
                               <button class="btn btn-sm {{ $task->status === 'completed' ? 'btn-success' : 'btn-warning' }} status-btn"
@@ -143,52 +143,151 @@
             icon.toggleClass("fa-chevron-down fa-chevron-up");
         });
 
-        // Edit task modal
-        $(".edit-task-btn").click(function() {
-          let taskId = $(this).data("task-id");
+        //Add task 
+        $("#createModal form").submit(function (e) {
+            e.preventDefault(); 
 
-          //ajax
-          $.ajax({
-            url: "/tasks/" + taskId + "/edit",
-            type: "GET",
-            success: function(response) {
-              console.log("Task Data Fetched:", response); 
+            let form = $(this);
+            let formData = form.serialize();
 
-              $("#edit-title").val(response.title);
-              $("#edit-description").val(response.description);
-              $("#edit-due-date").val(response.due_date);
-
-              $("#editTaskForm").attr("action", "/tasks/" + taskId);
-            },
-            error: function(error) {
-              alert("Failed to fetch task data.");
-
-            }
-          });
+            $.ajax({
+                url: form.attr("action"),
+                type: "POST",
+                data: formData,
+                success: function (response) {
+                    Swal.fire({
+                        title: "Task Added!",
+                        text: "Your new task has been created successfully.",
+                        icon: "success",
+                        confirmButtonColor: "#28a745"
+                    }).then(() => {
+                        location.reload(); // Reload page 
+                    });
+                },
+                error: function (xhr) {
+                    let errorMessage = "Something went wrong!";
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message; 
+                    }
+                    Swal.fire({
+                        title: "Error!",
+                        text: errorMessage,
+                        icon: "error",
+                        confirmButtonColor: "#d33"
+                    });
+                }
+            });
         });
+
+
+        // Edit task modal
+        $(".edit-task-btn").click(function () {
+            let taskId = $(this).data("task-id");
+
+            // Fetch task data using AJAX
+            $.ajax({
+                url: "/tasks/" + taskId + "/edit",
+                type: "GET",
+                success: function (response) {
+                    console.log("Task Data Fetched:", response);
+
+                    $("#edit-title").val(response.title);
+                    $("#edit-description").val(response.description);
+                    $("#edit-due-date").val(response.due_date);
+
+                    $("#editTaskForm").attr("action", "/tasks/" + taskId);
+                },
+                error: function () {
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Failed to fetch task data.",
+                        icon: "error",
+                        confirmButtonColor: "#d33"
+                    });
+                }
+            });
+        });
+
+        $("#editTaskForm").submit(function (e) {
+            e.preventDefault();
+
+            let form = $(this);
+            let formData = form.serialize();
+
+            $.ajax({
+                url: form.attr("action"),
+                type: "POST",
+                data: formData,
+                success: function (response) {
+                    Swal.fire({
+                        title: "Updated!",
+                        text: "Task updated successfully.",
+                        icon: "success",
+                        confirmButtonColor: "#28a745"
+                    }).then(() => {
+                        location.reload(); //Reload page
+                    });
+                },
+                error: function () {
+                    Swal.fire({
+                        title: "Error!",
+                        text: "Failed to update task.",
+                        icon: "error",
+                        confirmButtonColor: "#d33"
+                    });
+                }
+            });
+        });
+
 
         //Delete task button
         $(".delete-task-btn").click(function (e) {
-        e.preventDefault();
+          e.preventDefault();
 
-        let taskId = $(this).data("task-id");
+          let taskId = $(this).data("task-id");
 
-        Swal.fire({
-            title: "Are you sure?",
-            text: "This action cannot be undone!",
-            icon: "warning",
-            showCancelButton: true,
-            confirmButtonColor: "#d33",
-            cancelButtonColor: "#6c757d",
-            confirmButtonText: "Yes, delete it!"
-        }).then((result) => {
-            if (result.isConfirmed) {  
-                let form = $("#deleteTaskForm");
-                form.attr("action", "/tasks/" + taskId); 
-                form.submit();
-            }
-        });
+          Swal.fire({
+              title: "Are you sure?",
+              text: "This action cannot be undone!",
+              icon: "warning",
+              showCancelButton: true,
+              confirmButtonColor: "#d33",
+              cancelButtonColor: "#6c757d",
+              confirmButtonText: "Yes, delete it!"
+          }).then((result) => {
+              if (result.isConfirmed) {  
+                  let form = $("#deleteTaskForm");
+                  form.attr("action", "/tasks/" + taskId);
+
+                 
+                  $.ajax({
+                      url: form.attr("action"),
+                      type: "POST",
+                      data: form.serialize(),
+                      success: function(response) {
+                          Swal.fire({
+                              title: "Deleted!",
+                              text: "Task deleted successfully.",
+                              icon: "success",
+                              confirmButtonColor: "#28a745"
+                          }).then(() => {
+                              // Reload page 
+                              location.reload();
+                          });
+                      },
+                      error: function() {
+                          Swal.fire({
+                              title: "Error!",
+                              text: "Something went wrong, please try again.",
+                              icon: "error",
+                              confirmButtonColor: "#d33"
+                          });
+                      }
+                  });
+              }
+          });
       });
+
 
     //Change status
     $(".status-btn").click(function () {
