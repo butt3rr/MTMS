@@ -10,20 +10,24 @@
                     @csrf
                     @method('PUT')
 
+                    <!-- title -->
                     <div class="mb-3">
                         <label for="edit-title" class="form-label">Title</label>
                         <input type="text" class="form-control" id="edit-title" name="title" required>
                     </div>
 
+                   <!-- description (optional) -->
                     <div class="mb-3">
                         <label for="edit-description" class="form-label">Description (Optional)</label>
                         <textarea class="form-control" id="edit-description" name="description"></textarea>
                     </div>
 
+                    <!-- due date -->
                     <div class="mb-3">
                         <label for="edit-due-date" class="form-label">Due Date</label>
-                        <input type="date" class="form-control" id="edit-due-date" name="due_date" required>
+                        <input type="date" class="form-control" id="edit-due-date" name="due_date" min="{{ date('Y-m-d') }}" required>
                     </div>
+
 
                     <button type="submit" class="btn btn-primary">Update Task</button>
                 </form>

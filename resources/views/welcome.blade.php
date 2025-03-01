@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
 
-        <title>Laravel</title>
+        <title>MICES Task Management System</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -21,9 +21,13 @@
     </head>
     <body class="bg-[#FDFDFC] dark:bg-[#0a0a0a] text-[#1b1b18] flex items-center justify-center min-h-screen flex-col p-6">
     <div class="text-center">
+
+        <!-- Logo -->
+        <img src="{{ asset('images/mices-logo-1.svg') }}" alt="MICES Logo" class="mx-auto mb-4 w-50 h-50">
+
         <!-- System Name -->
         <h1 class="text-4xl font-bold text-[#1b1b18] dark:text-[#EDEDEC] mb-6">
-            MICES Task Management System
+            Task Management System
         </h1>
 
         @if (Route::has('login'))

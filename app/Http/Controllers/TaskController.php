@@ -7,14 +7,17 @@ use App\Models\Task;
 
 class TaskController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        if (!auth()->check()) {
-            return "User not logged in!";
-        }
+        $query = Task::where('fk_user_id', auth()->id());
 
-        $tasks = Task::where('fk_user_id', auth()->id())->get();
-        return view('home.dashboard', compact('tasks'));
+    if ($request->has('status') && $request->status !== 'all') {
+        $query->where('status', $request->status);
+    }
+
+    $tasks = $query->get();
+
+    return view('home.dashboard', compact('tasks'));
     }
 
     // Store task
@@ -46,33 +49,51 @@ class TaskController extends Controller
         return response()->json($task);
     }
 
-public function update(Request $request, Task $task)
-{
-    if ($task->fk_user_id !== auth()->id()) {
-        abort(403, 'Unauthorized action.');
+    //Update task
+    public function update(Request $request, Task $task)
+    {
+        if ($task->fk_user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
+
+        $request->validate([
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string',
+            'due_date' => 'required|date',
+        ]);
+
+        $task->update($request->all());
+
+        return redirect()->route('dashboard')->with('success', 'Task updated successfully!');
     }
 
-    $request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'due_date' => 'required|date',
-    ]);
+    // Delete task
+    public function destroy(Task $task)
+    {
+        if ($task->fk_user_id !== auth()->id()) {
+            abort(403, 'Unauthorized action.');
+        }
 
-    $task->update($request->all());
+        $task->delete();
 
-    return redirect()->route('dashboard')->with('success', 'Task updated successfully!');
-}
-
-public function destroy(Task $task)
-{
-    if ($task->fk_user_id !== auth()->id()) {
-        abort(403, 'Unauthorized action.');
+        return redirect()->back()->with('success', 'Task deleted successfully!');
     }
 
-    $task->delete();
+    // Update task status
+    public function updateStatus(Request $request, Task $task)
+    {
+        if ($task->fk_user_id !== auth()->id()) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
 
-    return redirect()->back()->with('success', 'Task deleted successfully!');
-}
+        // Toggle the status
+        $task->status = $task->status === 'pending' ? 'completed' : 'pending';
+        $task->save();
 
+        return response()->json([
+            'message' => 'Status updated successfully!',
+            'new_status' => $task->status
+        ]);
+    }
 
 }
